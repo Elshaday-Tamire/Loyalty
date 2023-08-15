@@ -19,5 +19,6 @@ public class Challenge {
     private Long challengeId;
     private String challengeName;
     private String description;
+    private String icon;
     private Boolean isEnabled;
 }
