@@ -23,7 +23,7 @@ public class TransactionsServiceImpl implements TransactionsService {
     @Override
     public List<Transactionss> getTransactionsByUsername(String username) {
         Users users= userRepository.findByUsername(username);
-        return transactionsRepository.findTransactionssByUsers(users);
+        return transactionsRepository.findTransactionssByUser(users);
     }
     
 

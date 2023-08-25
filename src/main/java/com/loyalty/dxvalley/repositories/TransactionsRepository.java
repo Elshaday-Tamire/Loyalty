@@ -8,5 +8,5 @@ import com.loyalty.dxvalley.models.Transactionss;
 import com.loyalty.dxvalley.models.Users;
 
 public interface TransactionsRepository extends JpaRepository<Transactionss,Long> {
-    List<Transactionss> findTransactionssByUsers(Users users);
+    List<Transactionss> findTransactionssByUser(Users users);
 }
