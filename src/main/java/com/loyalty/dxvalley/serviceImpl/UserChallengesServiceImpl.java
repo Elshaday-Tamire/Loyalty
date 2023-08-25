@@ -38,6 +38,7 @@ public class UserChallengesServiceImpl implements UserChallengsService {
         userChallenges.stream().forEach(uc->{
             System.out.println(uc.getChallenge().getChallengeName());
             UserChallengeDTO userChallengeDTO= new UserChallengeDTO();
+            userChallengeDTO.setChallengeName(uc.getChallenge().getChallengeName());
             userChallengeDTO.setChallengeLogo(uc.getChallenge().getIcon());
             userChallengeDTO.setAffliateLink("https://play.google.com/store/apps/details?id=om.example.michuapp&user_id=1");
             userChallengeDTO.setPointsEarned(uc.getPoints().toString());
