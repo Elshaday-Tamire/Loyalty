@@ -34,7 +34,7 @@ public class UserChallengesServiceImpl implements UserChallengsService {
         DashboardData dashboardData= new DashboardData();
        
         List<UserChallengeDTO> userChallengeDTOs= new ArrayList<UserChallengeDTO>();
-        
+        points=0;
         userChallenges.stream().forEach(uc->{
             System.out.println(uc.getChallenge().getChallengeName());
             UserChallengeDTO userChallengeDTO= new UserChallengeDTO();
