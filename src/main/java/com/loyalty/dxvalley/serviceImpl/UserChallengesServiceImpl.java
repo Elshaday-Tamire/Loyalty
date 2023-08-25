@@ -34,7 +34,9 @@ public class UserChallengesServiceImpl implements UserChallengsService {
         DashboardData dashboardData= new DashboardData();
        
         List<UserChallengeDTO> userChallengeDTOs= new ArrayList<UserChallengeDTO>();
+        
         userChallenges.stream().forEach(uc->{
+            System.out.println(uc.getChallenge().getChallengeName());
             UserChallengeDTO userChallengeDTO= new UserChallengeDTO();
             userChallengeDTO.setChallengeLogo(uc.getChallenge().getIcon());
             userChallengeDTO.setAffliateLink("https://play.google.com/store/apps/details?id=om.example.michuapp&user_id=1");
@@ -44,7 +46,6 @@ public class UserChallengesServiceImpl implements UserChallengsService {
             userChallengeDTOs.add(userChallengeDTO);
         });
         dashboardData.setUserChallengeDTOs(userChallengeDTOs);
-        dashboardData.setUserChallengeDTOs(null);
         dashboardData.setTotalPoints(points.toString());
         dashboardData.setEquivalentETB("10");
         dashboardData.setLevelColor("#dfb64d");
