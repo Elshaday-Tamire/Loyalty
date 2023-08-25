@@ -14,6 +14,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.loyalty.dxvalley.models.CreateResponse;
+import com.loyalty.dxvalley.models.Levelss;
 import com.loyalty.dxvalley.models.Packagess;
 import com.loyalty.dxvalley.services.PackagesService;
 
@@ -31,6 +32,12 @@ public class PackagessController {
         List<Packagess> getPackagesses(){
             return this.packagessService.getPackage();
         }
+
+     @GetMapping("/{packageId}") 
+     Packagess getPackages(@PathVariable Long packageId) {
+        return packagessService.getPackagesById(packageId);
+     }
+     
 
      @PostMapping("/addPackages")
     public ResponseEntity<CreateResponse> addPackagess (@RequestBody Packagess packagess) {

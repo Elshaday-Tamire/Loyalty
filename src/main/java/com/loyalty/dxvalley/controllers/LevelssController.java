@@ -34,6 +34,13 @@ public class LevelssController {
         return this.levelssService.getLevels();  
     }
 
+    @GetMapping("/{levelId}")
+        Levelss getLevelss(@PathVariable Long levelId) {
+            return levelssService.getLevelById(levelId);
+        }
+  
+
+
 
     @PostMapping("/addLevels")
     public ResponseEntity<CreateResponse> addLevelss (@RequestBody Levelss levelss) {
@@ -52,6 +59,7 @@ public class LevelssController {
         levelss.setMaxValue(tempLevelss.getMaxValue());
         levelss.setMinValue(tempLevelss.getMinValue());
         levelss.setIcon(tempLevelss.getIcon());
+        levelss.setColour(tempLevelss.getColour());
         return levelssService.editLevelss(levelss);
     }
 

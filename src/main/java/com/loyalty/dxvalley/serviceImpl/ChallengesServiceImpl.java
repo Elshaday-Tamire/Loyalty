@@ -20,5 +20,10 @@ public class ChallengesServiceImpl implements ChallengsService{
     public List<Challenge> getChallenges() {
         return challengeRepositoty.findAll();
     }
+    @Override
+    public Challenge getChallengeById(Long challengeId) {
+       
+        return challengeRepositoty.findByChallengeId(challengeId);
+    }
     
 }

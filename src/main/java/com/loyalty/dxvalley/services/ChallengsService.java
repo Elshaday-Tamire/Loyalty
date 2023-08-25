@@ -7,4 +7,6 @@ import com.loyalty.dxvalley.models.Challenge;
 
 public interface ChallengsService {
     List<Challenge> getChallenges ();
+    Challenge getChallengeById( Long challengeeId);
+
 }

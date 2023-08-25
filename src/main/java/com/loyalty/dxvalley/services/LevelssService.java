@@ -5,7 +5,6 @@ import java.util.List;
 
 import com.loyalty.dxvalley.models.Levelss;
 
-import ch.qos.logback.classic.Level;
 
 public interface LevelssService {
     

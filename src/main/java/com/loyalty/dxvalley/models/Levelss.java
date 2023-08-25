@@ -24,4 +24,5 @@ public class Levelss {
     private Integer maxValue;
     private Boolean isEnabled;
     private String icon;
+    private String colour;
 }
