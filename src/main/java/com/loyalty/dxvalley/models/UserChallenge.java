@@ -30,6 +30,7 @@ public class UserChallenge {
     @Column(name="joinedAt")
     private String  joinedAt;
     private Boolean isEnabled;
+    private String affliateLink;
 
     @ManyToOne 
     @JoinColumn(name = "userId") 

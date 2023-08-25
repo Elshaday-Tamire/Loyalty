@@ -7,7 +7,8 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-import com.loyalty.dxvalley.models.UserChallenge;
+
+import com.loyalty.dxvalley.models.DashboardData;
 import com.loyalty.dxvalley.services.UserChallengsService;
 import lombok.RequiredArgsConstructor;
 
@@ -18,7 +19,7 @@ public class UserChallengsController {
     @Autowired
     private final UserChallengsService userChallengsService;
   @GetMapping("/getByUsername/{username}")
-  List<UserChallenge> getAll(@PathVariable String username) {
+  DashboardData getAll(@PathVariable String username) {
    return userChallengsService.getUserChallengesByUsername(username);
   }
 }
