@@ -1,26 +1,26 @@
 package com.loyalty.dxvalley.models;
 
+import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
-
-import jakarta.persistence.Entity;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 
-
 @Getter
 @Setter
-@RequiredArgsConstructor
 @Entity
-public class Level {
+@RequiredArgsConstructor
+
+public class Packagess {
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
-    private Long levelId;
-    private String levelName;
-    private String description;
-    private Integer minValue;
-    private Integer maxValue;
-    private Boolean isEnabled;
+    private Long packageId;
+    private String packageName;
+    private String packageDescription;
+    private Boolean isEnabeled;
+    private String logo;
+    
+
 }

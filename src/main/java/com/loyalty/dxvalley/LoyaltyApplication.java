@@ -15,5 +15,7 @@ public class LoyaltyApplication {
 	public BCryptPasswordEncoder passwordEncoder() {
 		return new BCryptPasswordEncoder();
 	}
-
 }
+
+
+   

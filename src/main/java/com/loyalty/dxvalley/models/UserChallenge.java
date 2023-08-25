@@ -40,5 +40,5 @@ public class UserChallenge {
     Challenge challenge;
 
     @ManyToOne
-    private Level level;
+    private Levelss level;
 }

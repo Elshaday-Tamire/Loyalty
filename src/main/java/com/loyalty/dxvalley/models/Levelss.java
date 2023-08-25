@@ -1,9 +1,10 @@
 package com.loyalty.dxvalley.models;
 
-import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+
+import jakarta.persistence.Entity;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
@@ -13,13 +14,14 @@ import lombok.Setter;
 @Setter
 @RequiredArgsConstructor
 @Entity
-public class Challenge {
-     @Id
+public class Levelss {
+    @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
-    private Long challengeId;
-    private String challengeName;
+    private Long levelId;
+    private String levelName;
     private String description;
-    private Long maxPoints;
-    private String icon;
+    private Integer minValue;
+    private Integer maxValue;
     private Boolean isEnabled;
+    private String icon;
 }
