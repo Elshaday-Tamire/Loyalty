@@ -1,33 +1,28 @@
 package com.loyalty.dxvalley.models;
+import com.fasterxml.jackson.annotation.JsonFormat;
+import com.fasterxml.jackson.annotation.JsonFormat.Shape;
 
+import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
-import jakarta.persistence.ManyToOne;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
-
 
 @Getter
 @Setter
 @RequiredArgsConstructor
 @Entity
-public class Challenge {
-     @Id
+public class ProductCataloge {
+    @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
-    private Long challengeId;
-    private String challengeName;
+    private Long productId;
+    private String productName;
+    private String productLogo;
     private String description;
-    private String points;
-    private Long maxPoints;
-    private String icon;
-    private Boolean isEnabled;
-
-    @ManyToOne
-    private Category category;
-
-     @ManyToOne
-    private ProductCataloge productCataloge;
+     @JsonFormat(pattern="yyyy-MM-dd",shape = Shape.STRING)
+    @Column(name="createdAt")
+    private String  createdAt;
 }

@@ -25,5 +25,13 @@ public class ChallengesServiceImpl implements ChallengsService{
        
         return challengeRepositoty.findByChallengeId(challengeId);
     }
+    @Override
+    public Challenge addChallenge(Challenge challenge) {
+        return challengeRepositoty.save(challenge);
+    }
+    @Override
+    public Challenge editChallenge(Challenge challenge) {
+        return challengeRepositoty.save(challenge);
+    }
     
 }
