@@ -1,5 +1,7 @@
 package com.loyalty.dxvalley.controllers;
 
+import java.io.File;
+import java.io.IOException;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -11,11 +13,19 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.multipart.MultipartFile;
 
 import com.loyalty.dxvalley.models.CreateResponse;
+import com.loyalty.dxvalley.models.ImageMetadata;
 import com.loyalty.dxvalley.models.Packagess;
+import com.loyalty.dxvalley.repositories.ImageMetadataRepository;
 import com.loyalty.dxvalley.services.PackagesService;
+
+import jakarta.transaction.Transactional;
+
+import org.springframework.beans.factory.annotation.Value;
 
 import lombok.RequiredArgsConstructor;
 
@@ -38,12 +48,58 @@ public class PackagessController {
      }
      
 
-     @PostMapping("/addPackages")
-    public ResponseEntity<CreateResponse> addPackagess (@RequestBody Packagess packagess) {
+    //  @PostMapping("/addPackages")
+    // public ResponseEntity<CreateResponse> addPackagess (@RequestBody Packagess packagess) {
+    //     packagessService.addPackages(packagess);
+    //     CreateResponse response = new CreateResponse("Success","Packages created successfully");
+    //     return new ResponseEntity<>(response, HttpStatus.OK);
+    // }   
+   @Autowired
+    private ImageMetadataRepository imageMetadataRepository; // Autowire ImageMetadata repository
+
+    @Value("${file.upload-dir}")
+    private String uploadDir;
+    @Transactional
+ @PostMapping("/addPackages")
+    public ResponseEntity<CreateResponse> addPackages(
+            @RequestParam("packageName") String packageName,
+            @RequestParam("packageDescription") String packageDescription,
+            @RequestParam("isEnabeled") Boolean isEnabeled,
+            @RequestParam("logo") String logo,
+            @RequestParam("logoFile") MultipartFile logoFile
+    ) {
+        Packagess packagess = new Packagess();
+        packagess.setPackageName(packageName);
+        packagess.setPackageDescription(packageDescription);
+        packagess.setIsEnabeled(isEnabeled);
+        packagess.setLogo(logo);
+
+        // Save the package information to the database or perform other operations
         packagessService.addPackages(packagess);
-        CreateResponse response = new CreateResponse("Success","Packages created successfully");
+
+        // Handle the logo file separately
+        if (!logoFile.isEmpty()) {
+            String fileName = logoFile.getOriginalFilename();
+            File file = new File(uploadDir + File.separator + fileName);
+            try {
+                logoFile.transferTo(file);
+
+                // Create ImageMetadata entity and save it to associate with Packagess entity
+                ImageMetadata logoMetadata = new ImageMetadata();
+                logoMetadata.setFileName(fileName);
+                imageMetadataRepository.save(logoMetadata);
+
+                packagess.setLogoMetadata(logoMetadata); // Associate with main entity
+            } catch (IOException e) {
+                // Handle file upload exception
+            }
+        }
+
+        CreateResponse response = new CreateResponse("Success", "Package created successfully");
         return new ResponseEntity<>(response, HttpStatus.OK);
-    }   
+    }
+
+   
     
       @PutMapping("/edit/{packageId}")
       Packagess editPackagess(@RequestBody Packagess tempPackagess, @PathVariable Long packageId) {

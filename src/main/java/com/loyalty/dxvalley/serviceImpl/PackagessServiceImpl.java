@@ -18,7 +18,17 @@ public class PackagessServiceImpl implements PackagesService  {
 private final PackagessRepository packagesRepository;
     @Override
     public List<Packagess> getPackage() {
-        return packagesRepository.findAll();
+        List<Packagess> packages = packagesRepository.findAll();
+
+        // for (Packagess packagess : packages) {
+        //     if (packagess.getLogoMetadata() != null) {
+        //         String imageName = packagess.getLogoMetadata().getFileName();
+        //         String imageUrl = "http://localhost:9001/" + imageName; // Adjust URL accordingly
+        //         packagess.setLogo(imageUrl);
+        //     }
+        // }
+
+        return packages;
       
     }
     @Override
