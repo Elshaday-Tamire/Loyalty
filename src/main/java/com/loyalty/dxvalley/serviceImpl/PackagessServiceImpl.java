@@ -20,13 +20,13 @@ private final PackagessRepository packagesRepository;
     public List<Packagess> getPackage() {
         List<Packagess> packages = packagesRepository.findAll();
 
-        // for (Packagess packagess : packages) {
-        //     if (packagess.getLogoMetadata() != null) {
-        //         String imageName = packagess.getLogoMetadata().getFileName();
-        //         String imageUrl = "http://localhost:9001/" + imageName; // Adjust URL accordingly
-        //         packagess.setLogo(imageUrl);
-        //     }
-        // }
+        for (Packagess packagess : packages) {
+            if (packagess.getLogoMetadata() != null) {
+                String imageName = packagess.getLogoMetadata().getFileName();
+                String imageUrl = "http://10.1.177.123:9000/" + imageName; // Adjust URL accordingly
+                packagess.setLogo(imageUrl);
+            }
+        }
 
         return packages;
       

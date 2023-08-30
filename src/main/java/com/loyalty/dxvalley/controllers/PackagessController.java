@@ -2,6 +2,7 @@ package com.loyalty.dxvalley.controllers;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -16,6 +17,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
+import org.springframework.web.util.UriUtils;
 
 import com.loyalty.dxvalley.models.CreateResponse;
 import com.loyalty.dxvalley.models.ImageMetadata;
@@ -33,41 +35,52 @@ import lombok.RequiredArgsConstructor;
 @RestController
 @RequiredArgsConstructor
 public class PackagessController {
-    
+
     @Autowired
     private final PackagesService packagessService;
-
-    @GetMapping("/getPackages")
-        List<Packagess> getPackagesses(){
-            return this.packagessService.getPackage();
-        }
-
-     @GetMapping("/{packageId}") 
-     Packagess getPackages(@PathVariable Long packageId) {
-        return packagessService.getPackagesById(packageId);
-     }
-     
-
-    //  @PostMapping("/addPackages")
-    // public ResponseEntity<CreateResponse> addPackagess (@RequestBody Packagess packagess) {
-    //     packagessService.addPackages(packagess);
-    //     CreateResponse response = new CreateResponse("Success","Packages created successfully");
-    //     return new ResponseEntity<>(response, HttpStatus.OK);
-    // }   
-   @Autowired
+    @Autowired
     private ImageMetadataRepository imageMetadataRepository; // Autowire ImageMetadata repository
 
     @Value("${file.upload-dir}")
     private String uploadDir;
+
+   @GetMapping("/getPackages")
+List<Packagess> getPackagesses() {
+    List<Packagess> packagesses = this.packagessService.getPackage();
+    packagesses.forEach(p -> {
+        File imageFile = new File(uploadDir, p.getLogoMetadata().getFileName());
+        if (imageFile.exists() && imageFile.isFile()) {
+            String encodedFileName = UriUtils.encode(p.getLogoMetadata().getFileName(), StandardCharsets.UTF_8);
+            String imageUrl = "http://10.1.177.123:9000/api/images/" + encodedFileName;
+            p.setLogo(imageUrl);
+        }
+    });
+
+    return packagesses;
+}
+
+    @GetMapping("/{packageId}")
+    Packagess getPackages(@PathVariable Long packageId) {
+        return packagessService.getPackagesById(packageId);
+    }
+
+    // @PostMapping("/addPackages")
+    // public ResponseEntity<CreateResponse> addPackagess (@RequestBody Packagess
+    // packagess) {
+    // packagessService.addPackages(packagess);
+    // CreateResponse response = new CreateResponse("Success","Packages created
+    // successfully");
+    // return new ResponseEntity<>(response, HttpStatus.OK);
+    // }
+
     @Transactional
- @PostMapping("/addPackages")
+    @PostMapping("/addPackages")
     public ResponseEntity<CreateResponse> addPackages(
             @RequestParam("packageName") String packageName,
             @RequestParam("packageDescription") String packageDescription,
             @RequestParam("isEnabeled") Boolean isEnabeled,
             @RequestParam("logo") String logo,
-            @RequestParam("logoFile") MultipartFile logoFile
-    ) {
+            @RequestParam("logoFile") MultipartFile logoFile) {
         Packagess packagess = new Packagess();
         packagess.setPackageName(packageName);
         packagess.setPackageDescription(packageDescription);
@@ -99,19 +112,15 @@ public class PackagessController {
         return new ResponseEntity<>(response, HttpStatus.OK);
     }
 
-   
-    
-      @PutMapping("/edit/{packageId}")
-      Packagess editPackagess(@RequestBody Packagess tempPackagess, @PathVariable Long packageId) {
+    @PutMapping("/edit/{packageId}")
+    Packagess editPackagess(@RequestBody Packagess tempPackagess, @PathVariable Long packageId) {
         Packagess packagess = this.packagessService.getPackagesById(packageId);
         packagess.setPackageName(tempPackagess.getPackageName());
         packagess.setPackageDescription(tempPackagess.getPackageDescription());
-        packagess.setLogo(tempPackagess.getLogo()); 
+        packagess.setLogo(tempPackagess.getLogo());
         packagess.setIsEnabeled(tempPackagess.getIsEnabeled());
         return packagessService.editPackages(packagess);
-        
+
     }
 
-
-    
 }
