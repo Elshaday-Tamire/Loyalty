@@ -111,16 +111,55 @@ List<Packagess> getPackagesses() {
         CreateResponse response = new CreateResponse("Success", "Package created successfully");
         return new ResponseEntity<>(response, HttpStatus.OK);
     }
-
+    @Transactional
     @PutMapping("/edit/{packageId}")
-    Packagess editPackagess(@RequestBody Packagess tempPackagess, @PathVariable Long packageId) {
-        Packagess packagess = this.packagessService.getPackagesById(packageId);
-        packagess.setPackageName(tempPackagess.getPackageName());
-        packagess.setPackageDescription(tempPackagess.getPackageDescription());
-        packagess.setLogo(tempPackagess.getLogo());
-        packagess.setIsEnabeled(tempPackagess.getIsEnabeled());
-        return packagessService.editPackages(packagess);
+    public ResponseEntity<CreateResponse> editPackages(
+            @PathVariable Long packageId,
+            @RequestParam("packageName") String packageName,
+            @RequestParam("packageDescription") String packageDescription,
+            @RequestParam("isEnabeled") Boolean isEnabeled,
+            @RequestParam("logo") String logo,
+            @RequestParam("logoFile") MultipartFile logoFile) {
+        Packagess packagess = packagessService.getPackagesById(packageId);
+        packagess.setPackageName(packageName);
+        packagess.setPackageDescription(packageDescription);
+        packagess.setIsEnabeled(isEnabeled);
+        packagess.setLogo(logo);
 
+        // Save the package information to the database or perform other operations
+        packagessService.editPackages(packagess);
+
+        // Handle the logo file separately
+        if (!logoFile.isEmpty()) {
+            String fileName = logoFile.getOriginalFilename();
+            File file = new File(uploadDir + File.separator + fileName);
+            try {
+                logoFile.transferTo(file);
+
+                // Create ImageMetadata entity and save it to associate with Packagess entity
+                ImageMetadata logoMetadata = new ImageMetadata();
+                logoMetadata.setFileName(fileName);
+                imageMetadataRepository.save(logoMetadata);
+
+                packagess.setLogoMetadata(logoMetadata); // Associate with main entity
+            } catch (IOException e) {
+                // Handle file upload exception
+            }
+        }
+
+        CreateResponse response = new CreateResponse("Success", "Package updated successfully");
+        return new ResponseEntity<>(response, HttpStatus.OK);
     }
+
+    // @PutMapping("/edit/{packageId}")
+    // Packagess editPackagess(@RequestBody Packagess tempPackagess, @PathVariable Long packageId) {
+    //     Packagess packagess = this.packagessService.getPackagesById(packageId);
+    //     packagess.setPackageName(tempPackagess.getPackageName());
+    //     packagess.setPackageDescription(tempPackagess.getPackageDescription());
+    //     packagess.setLogo(tempPackagess.getLogo());
+    //     packagess.setIsEnabeled(tempPackagess.getIsEnabeled());
+    //     return packagessService.editPackages(packagess);
+
+    // }
 
 }

@@ -7,4 +7,5 @@ import com.loyalty.dxvalley.models.Transactionss;
 
 public interface TransactionsService {
     List<Transactionss> getTransactionsByUsername (String username);
+    List<Transactionss> getAll();
 }

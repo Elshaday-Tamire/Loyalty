@@ -26,7 +26,7 @@ public class UserChallengesServiceImpl implements UserChallengsService {
     private final UserChallengeRepository userChallengeRepository;
     private  final UserRepository userRepository;
     private final LevelssRepository levelssRepository;
-     Integer points=0;
+     Double points=0.0;
      String level="0";
     @Override
     public DashboardData getUserChallengesByUsername(String username) {
@@ -35,7 +35,7 @@ public class UserChallengesServiceImpl implements UserChallengsService {
         DashboardData dashboardData= new DashboardData();
        
         List<UserChallengeDTO> userChallengeDTOs= new ArrayList<UserChallengeDTO>();
-        points=0;
+        points=0.0;
         
         userChallenges.stream().forEach(uc->{
             System.out.println(uc.getChallenge().getChallengeName());
@@ -65,6 +65,14 @@ public class UserChallengesServiceImpl implements UserChallengsService {
         });
         dashboardData.setLevelDetails(levelDetailsArray);
         return dashboardData;
+    }
+    @Override
+    public List<UserChallenge> getAll() {
+        return userChallengeRepository.findAll();
+    }
+    @Override
+    public List<UserChallenge> getUserChallengesByuser(Users users) {
+       return userChallengeRepository.findUserChallengeByUsers(users);
     }
 
 }

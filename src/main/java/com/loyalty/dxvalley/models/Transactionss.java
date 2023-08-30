@@ -22,7 +22,7 @@ public class Transactionss {
     @GeneratedValue(strategy = GenerationType.AUTO)
     private Long transactionId;
     private String naration;
-    private String amount;
+    private Double amount;
     private String transactionType;
     private String status;
      @JsonFormat(pattern="yyyy-MM-dd",shape = Shape.STRING)

@@ -25,6 +25,10 @@ public class TransactionsServiceImpl implements TransactionsService {
         Users users= userRepository.findByUsername(username);
         return transactionsRepository.findTransactionssByUser(users);
     }
+    @Override
+    public List<Transactionss> getAll() {
+        return transactionsRepository.findAll();
+    }
     
 
 }

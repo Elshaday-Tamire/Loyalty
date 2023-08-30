@@ -25,7 +25,7 @@ public class UserChallenge {
     @GeneratedValue(strategy= GenerationType.AUTO) 
     private Long userChallengeId; 
 
-    private Integer points;
+    private Double points;
     @JsonFormat(pattern="yyyy-MM-dd",shape = Shape.STRING)
     @Column(name="joinedAt")
     private String  joinedAt;
