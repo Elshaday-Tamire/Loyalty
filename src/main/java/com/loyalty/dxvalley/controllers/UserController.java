@@ -1,6 +1,7 @@
 package com.loyalty.dxvalley.controllers;
 
 import java.nio.file.AccessDeniedException;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -87,6 +88,35 @@ public class UserController {
     }
 
     return new ResponseEntity<>(user, HttpStatus.OK);
+  }
+  
+  @GetMapping("/getAppUsers/")
+  List<Users> getAppUsers() {
+    List<Users> users=userRepository.findAll();
+    List<Users> appUsers= new ArrayList<Users>();
+    users.stream().forEach(u->{
+          u.getRoles().stream().forEach(r->{
+            if(r.getRoleName().equals("loyaltyAppUser"))
+            {
+              appUsers.add(u);
+            }
+          });
+    });
+    return appUsers;
+  }
+   @GetMapping("/getAdminUsers/")
+  List<Users> getAdminUsers() {
+    List<Users> users=userRepository.findAll();
+    List<Users> adminUsers= new ArrayList<Users>();
+    users.stream().forEach(u->{
+          u.getRoles().stream().forEach(r->{
+            if(r.getRoleName().equals("superAdmin")||r.getRoleName().equals("admin"))
+            {
+              adminUsers.add(u);
+            }
+          });
+    });
+    return adminUsers;
   }
 
   // @GetMapping("/getUserProfile/{phoneNumber}")
