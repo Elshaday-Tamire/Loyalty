@@ -14,6 +14,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 
 import com.loyalty.dxvalley.models.CreateResponse;
+import com.loyalty.dxvalley.models.Packagess;
 import com.loyalty.dxvalley.models.TransactionRules;
 import com.loyalty.dxvalley.services.TransactionRulesService;
 
@@ -40,7 +41,11 @@ public class TransactionRulesController {
     List <TransactionRules> getTransactionRules() {
         return this.transactionRulesService.getTransactionRules();
     }
-    
+
+    @GetMapping("/{transactionRuleId}")
+    TransactionRules getTransactionRules(@PathVariable Long transactionRuleId) {
+        return transactionRulesService.getTransactionRuleById(transactionRuleId);
+    }    
 
     @PutMapping("edit/{transactionRuleId}")
     TransactionRules editTransactionRules(@RequestBody TransactionRules temptransactionRules, @PathVariable Long transactionRuleId) {
