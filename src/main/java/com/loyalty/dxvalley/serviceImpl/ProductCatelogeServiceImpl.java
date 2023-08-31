@@ -6,7 +6,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.loyalty.dxvalley.models.ProductCataloge;
-import com.loyalty.dxvalley.repositories.CategoryRepository;
 import com.loyalty.dxvalley.repositories.ProductCatalogRepository;
 import com.loyalty.dxvalley.services.ProductCatalogService;
 
