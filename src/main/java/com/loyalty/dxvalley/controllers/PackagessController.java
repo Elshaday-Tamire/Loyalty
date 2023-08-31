@@ -61,7 +61,14 @@ List<Packagess> getPackagesses() {
 
     @GetMapping("/{packageId}")
     Packagess getPackages(@PathVariable Long packageId) {
-        return packagessService.getPackagesById(packageId);
+        Packagess packagess=  packagessService.getPackagesById(packageId);
+        File imageFile = new File(uploadDir, packagess.getLogoMetadata().getFileName());
+         if (imageFile.exists() && imageFile.isFile()) {
+            String encodedFileName = UriUtils.encode(packagess.getLogoMetadata().getFileName(), StandardCharsets.UTF_8);
+            String imageUrl = "http://10.1.177.123:9000/api/images/" + encodedFileName;
+            packagess.setLogo(imageUrl);
+        }
+        return  packagess;
     }
 
     // @PostMapping("/addPackages")
@@ -115,41 +122,51 @@ List<Packagess> getPackagesses() {
     @PutMapping("/edit/{packageId}")
     public ResponseEntity<CreateResponse> editPackages(
             @PathVariable Long packageId,
-            @RequestParam("packageName") String packageName,
-            @RequestParam("packageDescription") String packageDescription,
-            @RequestParam("isEnabeled") Boolean isEnabeled,
-            @RequestParam("logo") String logo,
-            @RequestParam("logoFile") MultipartFile logoFile) {
+            @RequestParam(required = false) String packageName,
+            @RequestParam(required = false) String packageDescription,
+            @RequestParam(required = false) Boolean isEnabeled,
+            @RequestParam(required = false) String logo,
+            @RequestParam(required = false) MultipartFile logoFile) {
         Packagess packagess = packagessService.getPackagesById(packageId);
-        packagess.setPackageName(packageName);
-        packagess.setPackageDescription(packageDescription);
-        packagess.setIsEnabeled(isEnabeled);
-        packagess.setLogo(logo);
-
+    
+        if (packageName != null) {
+            packagess.setPackageName(packageName);
+        }
+        if (packageDescription != null) {
+            packagess.setPackageDescription(packageDescription);
+        }
+        if (isEnabeled != null) {
+            packagess.setIsEnabeled(isEnabeled);
+        }
+        if (logo != null) {
+            packagess.setLogo(logo);
+        }
+    
         // Save the package information to the database or perform other operations
         packagessService.editPackages(packagess);
-
-        // Handle the logo file separately
-        if (!logoFile.isEmpty()) {
+    
+        // Handle the logo file separately if provided
+        if (logoFile != null && !logoFile.isEmpty()) {
             String fileName = logoFile.getOriginalFilename();
             File file = new File(uploadDir + File.separator + fileName);
             try {
                 logoFile.transferTo(file);
-
+    
                 // Create ImageMetadata entity and save it to associate with Packagess entity
                 ImageMetadata logoMetadata = new ImageMetadata();
                 logoMetadata.setFileName(fileName);
                 imageMetadataRepository.save(logoMetadata);
-
+    
                 packagess.setLogoMetadata(logoMetadata); // Associate with main entity
             } catch (IOException e) {
                 // Handle file upload exception
             }
         }
-
+    
         CreateResponse response = new CreateResponse("Success", "Package updated successfully");
         return new ResponseEntity<>(response, HttpStatus.OK);
     }
+    
 
     // @PutMapping("/edit/{packageId}")
     // Packagess editPackagess(@RequestBody Packagess tempPackagess, @PathVariable Long packageId) {
