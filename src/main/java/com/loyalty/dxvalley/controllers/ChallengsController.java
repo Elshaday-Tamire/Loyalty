@@ -14,7 +14,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import com.loyalty.dxvalley.models.Challenge;
 import com.loyalty.dxvalley.models.CreateResponse;
-import com.loyalty.dxvalley.models.Packagess;
+
 import com.loyalty.dxvalley.services.ChallengsService;
 import lombok.RequiredArgsConstructor;
 
