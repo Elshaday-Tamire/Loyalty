@@ -90,7 +90,7 @@ public class UserController {
     return new ResponseEntity<>(user, HttpStatus.OK);
   }
   
-  @GetMapping("/getAppUsers/")
+  @GetMapping("/getAppUsers")
   List<Users> getAppUsers() {
     List<Users> users=userRepository.findAll();
     List<Users> appUsers= new ArrayList<Users>();
@@ -104,7 +104,7 @@ public class UserController {
     });
     return appUsers;
   }
-   @GetMapping("/getAdminUsers/")
+   @GetMapping("/getAdminUsers")
   List<Users> getAdminUsers() {
     List<Users> users=userRepository.findAll();
     List<Users> adminUsers= new ArrayList<Users>();
