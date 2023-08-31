@@ -22,9 +22,8 @@ import org.springframework.web.bind.annotation.RestController;
 import com.loyalty.dxvalley.models.Users;
 import com.loyalty.dxvalley.repositories.RoleRepository;
 import com.loyalty.dxvalley.repositories.UserRepository;
-import com.loyalty.dxvalley.services.ChallengsService;
-//import com.loyalty.dxvalley.serviceImpl.UsersServiceImpl;
-import com.loyalty.dxvalley.services.UserChallengsService;
+
+
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -40,8 +39,6 @@ public class UserController {
  // private UsersServiceImpl usersServiceImpl;
   private final UserRepository userRepository;
   private final RoleRepository roleRepo;
-  private final UserChallengsService userChallengsService;
-  private final ChallengsService challengsService;
   private final PasswordEncoder passwordEncoder;
 
   // private boolean isSysAdmin() {
