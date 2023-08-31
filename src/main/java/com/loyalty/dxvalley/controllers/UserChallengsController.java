@@ -20,3 +20,5 @@ public class UserChallengsController {
    return userChallengsService.getUserChallengesByUsername(username);
   }
 }
+
+
