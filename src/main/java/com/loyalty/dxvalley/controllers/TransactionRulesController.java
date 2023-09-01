@@ -53,6 +53,7 @@ public class TransactionRulesController {
        transactionRules.setMinValue(temptransactionRules.getMinValue());
        transactionRules.setMaxValue(temptransactionRules.getMaxValue());
        transactionRules.setPoint(temptransactionRules.getPoint());
+       transactionRules.setChallenge(temptransactionRules.getChallenge());
        return transactionRulesService.editTransactionRules(transactionRules);
     }
 
