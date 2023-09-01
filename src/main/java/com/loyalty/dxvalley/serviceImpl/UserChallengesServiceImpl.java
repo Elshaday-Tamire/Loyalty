@@ -65,7 +65,7 @@ public class UserChallengesServiceImpl implements UserChallengsService {
             userChallengeDTO
                     .setAffliateLink("https://play.google.com/store/apps/details?id=om.example.michuapp&user_id=1");
             userChallengeDTO.setPointsEarned(uc.getPoints().toString());
-            userChallengeDTO.setAwardPoints("300");
+            userChallengeDTO.setAwardPoints(uc.getChallenge().getPoints().toString());
             points += uc.getPoints();
             userChallengeDTOs.add(userChallengeDTO);
         });

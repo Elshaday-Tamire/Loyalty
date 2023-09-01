@@ -1,5 +1,8 @@
 package com.loyalty.dxvalley.controllers;
 
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -14,8 +17,11 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import com.loyalty.dxvalley.models.Challenge;
 import com.loyalty.dxvalley.models.CreateResponse;
-
+import com.loyalty.dxvalley.models.UserChallenge;
+import com.loyalty.dxvalley.repositories.UserRepository;
 import com.loyalty.dxvalley.services.ChallengsService;
+import com.loyalty.dxvalley.services.UserChallengsService;
+
 import lombok.RequiredArgsConstructor;
 
 @RestController
@@ -25,10 +31,24 @@ public class ChallengsController {
 
   @Autowired
   private final ChallengsService challengsService;
+  private final UserRepository userRepository;
+  private final UserChallengsService userChallengsService;
 
     @PostMapping("/addChallenge")
     public ResponseEntity<CreateResponse> addChallenge (@RequestBody Challenge challenge) {
-        challengsService.addChallenge(challenge);
+       DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
+    Date currentDate = new Date();
+        Challenge newChallenge= challengsService.addChallenge(challenge);
+        userRepository.findAll().stream().forEach(u->{
+          UserChallenge userChallenge= new UserChallenge();
+          userChallenge.setChallenge(newChallenge);
+          userChallenge.setUsers(u);
+          userChallenge.setIsEnabled(true);
+          userChallenge.setJoinedAt(dateFormat.format(currentDate));
+          userChallenge.setPoints(0.0);
+          userChallenge.setAffliateLink(null);
+          userChallengsService.addUserChallenge(userChallenge);
+        });
         CreateResponse response = new CreateResponse("Success","Challenge created successfully");
         return new ResponseEntity<>(response, HttpStatus.OK);
     } 
