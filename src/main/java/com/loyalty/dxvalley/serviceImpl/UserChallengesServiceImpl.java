@@ -3,7 +3,9 @@ package com.loyalty.dxvalley.serviceImpl;
 import java.io.File;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -19,6 +21,8 @@ import com.loyalty.dxvalley.models.Users;
 import com.loyalty.dxvalley.repositories.LevelssRepository;
 import com.loyalty.dxvalley.repositories.UserChallengeRepository;
 import com.loyalty.dxvalley.repositories.UserRepository;
+import com.loyalty.dxvalley.services.LevelssService;
+import com.loyalty.dxvalley.services.SettingsService;
 import com.loyalty.dxvalley.services.UserChallengsService;
 
 import lombok.RequiredArgsConstructor;
@@ -30,6 +34,8 @@ public class UserChallengesServiceImpl implements UserChallengsService {
     private final UserChallengeRepository userChallengeRepository;
     private final UserRepository userRepository;
     private final LevelssRepository levelssRepository;
+    private final SettingsService settingsService;
+    private final LevelssService levelssService;
     Double points = 0.0;
     String level = "0";
     @Value("${file.upload-dir}")
@@ -48,13 +54,15 @@ public class UserChallengesServiceImpl implements UserChallengsService {
             System.out.println(uc.getChallenge().getChallengeName());
             UserChallengeDTO userChallengeDTO = new UserChallengeDTO();
             userChallengeDTO.setChallengeName(uc.getChallenge().getChallengeName());
-            File imageFile = new File(uploadDir, uc.getChallenge().getProductCataloge().getLogoMetadata().getFileName());
-             if (imageFile.exists() && imageFile.isFile()) {
-            String encodedFileName = UriUtils.encode(uc.getChallenge().getProductCataloge().getLogoMetadata().getFileName(), StandardCharsets.UTF_8);
-            String imageUrl = "http://10.1.177.123:9000/api/images/" + encodedFileName;
-           userChallengeDTO.setChallengeLogo(imageUrl);
-        }
-            
+            File imageFile = new File(uploadDir,
+                    uc.getChallenge().getProductCataloge().getLogoMetadata().getFileName());
+            if (imageFile.exists() && imageFile.isFile()) {
+                String encodedFileName = UriUtils.encode(
+                        uc.getChallenge().getProductCataloge().getLogoMetadata().getFileName(), StandardCharsets.UTF_8);
+                String imageUrl = "http://10.1.177.123:9000/api/images/" + encodedFileName;
+                userChallengeDTO.setChallengeLogo(imageUrl);
+            }
+
             userChallengeDTO
                     .setAffliateLink("https://play.google.com/store/apps/details?id=om.example.michuapp&user_id=1");
             userChallengeDTO.setPointsEarned(uc.getPoints().toString());
@@ -64,19 +72,37 @@ public class UserChallengesServiceImpl implements UserChallengsService {
         });
         dashboardData.setUserChallengeDTOs(userChallengeDTOs);
         dashboardData.setTotalPoints(points.toString());
-        dashboardData.setEquivalentETB("10");
-        dashboardData.setLevelColor("#dfb64d");
-        dashboardData.setLevelName("Gold");
-
+        Double rate = settingsService.getSettings().get(0).getExchangeRate();
+        Double result = (1 * points) / rate;
+        dashboardData.setEquivalentETB(result.toString());
         List<Levelss> levelsses = levelssRepository.findAll();
         List<LevelDetails> levelDetailsArray = new ArrayList<LevelDetails>();
-        levelsses.stream().forEach(l -> {
+        List<Levelss> sortedLevelsses = levelsses.stream()
+                .sorted(Comparator.comparing(Levelss::getMaxValue))
+                .collect(Collectors.toList());
+        sortedLevelsses.stream().forEach(l -> {
             LevelDetails levelDetails = new LevelDetails();
+            if (points < l.getMinValue()) {
+                levelDetails.setStatus("0");
+                //   dashboardData.setLevelColor(l.getColour());
+                //   dashboardData.setLevelName(l.getLevelName());
+            } else if (l.getMinValue() <= points && points < l.getMaxValue()) {
+                levelDetails.setStatus("1");
+                dashboardData.setLevelColor(l.getColour());
+                  dashboardData.setLevelName(l.getLevelName());
+            }
+
+            else if (points >= l.getMaxValue()) {
+                levelDetails.setStatus("2");
+                // dashboardData.setLevelColor(l.getColour());
+                //   dashboardData.setLevelName(l.getLevelName());
+            }
             levelDetails.setLevelName(l.getLevelName());
             levelDetails.setPoints(l.getMaxValue().toString());
-            levelDetails.setStatus("1");
             levelDetailsArray.add(levelDetails);
         });
+      
+
         dashboardData.setLevelDetails(levelDetailsArray);
         return dashboardData;
     }
