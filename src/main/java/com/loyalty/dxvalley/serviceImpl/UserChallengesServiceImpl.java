@@ -35,7 +35,6 @@ public class UserChallengesServiceImpl implements UserChallengsService {
     private final UserRepository userRepository;
     private final LevelssRepository levelssRepository;
     private final SettingsService settingsService;
-    private final LevelssService levelssService;
     Double points = 0.0;
     String level = "0";
     @Value("${file.upload-dir}")
@@ -115,6 +114,11 @@ public class UserChallengesServiceImpl implements UserChallengsService {
     @Override
     public List<UserChallenge> getUserChallengesByuser(Users users) {
         return userChallengeRepository.findUserChallengeByUsers(users);
+    }
+
+    @Override
+    public UserChallenge addUserChallenge(UserChallenge userChallenge) {
+        return userChallengeRepository.save(userChallenge);
     }
 
 }

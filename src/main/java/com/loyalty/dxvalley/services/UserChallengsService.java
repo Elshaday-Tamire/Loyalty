@@ -9,6 +9,7 @@ import com.loyalty.dxvalley.models.Users;
 
 
 public interface UserChallengsService {
+    UserChallenge addUserChallenge(UserChallenge userChallenge);
     DashboardData getUserChallengesByUsername (String username);
     List<UserChallenge> getUserChallengesByuser(Users users);
     List<UserChallenge> getAll();

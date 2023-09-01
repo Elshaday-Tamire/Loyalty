@@ -1,7 +1,10 @@
 package com.loyalty.dxvalley.controllers;
 
 import java.nio.file.AccessDeniedException;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -20,11 +23,14 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 //import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+
+import com.loyalty.dxvalley.models.Challenge;
+import com.loyalty.dxvalley.models.UserChallenge;
 import com.loyalty.dxvalley.models.Users;
 import com.loyalty.dxvalley.repositories.RoleRepository;
 import com.loyalty.dxvalley.repositories.UserRepository;
-
-
+import com.loyalty.dxvalley.services.ChallengsService;
+import com.loyalty.dxvalley.services.UserChallengsService;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -41,6 +47,8 @@ public class UserController {
   private final UserRepository userRepository;
   private final RoleRepository roleRepo;
   private final PasswordEncoder passwordEncoder;
+  private final ChallengsService challengsService;
+  private final UserChallengsService userChallengsService;
 
   // private boolean isSysAdmin() {
   //   AtomicBoolean hasSysAdmin = new AtomicBoolean(false);
@@ -162,8 +170,19 @@ public class UserController {
         tempUser.getRoles().stream().map(x -> this.roleRepo.findByRoleName(x.getRoleName()))
             .collect(Collectors.toList()));
     tempUser.setPassword(passwordEncoder.encode(tempUser.getPassword()));
-    userRepository.save(tempUser);
-
+    List<Challenge> challenges=challengsService.getChallenges();
+    challenges.stream().forEach(c->{
+       DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
+    Date currentDate = new Date();
+      UserChallenge userChallenge= new UserChallenge();
+      userChallenge.setChallenge(c);
+      userChallenge.setJoinedAt(dateFormat.format(currentDate));
+      userChallenge.setIsEnabled(true);
+      userChallenge.setPoints(0.0);
+      Users newUser=userRepository.save(tempUser);
+      userChallenge.setUsers(newUser);
+      userChallengsService.addUserChallenge(userChallenge);  
+    });
     createUserResponse response = new createUserResponse("success", "user created successfully");
     return new ResponseEntity<>(response, HttpStatus.OK);
   }
