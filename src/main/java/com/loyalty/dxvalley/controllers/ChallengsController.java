@@ -48,9 +48,8 @@ public class ChallengsController {
           userChallenge.setPoints(0.0);
           if(newChallenge.getProductCataloge().getPlaystoreLink()!=null)
           {
-            userChallenge.setAffliateLink(newChallenge.getProductCataloge().getPlaystoreLink()+"?inviter="+u.getUsername());
+            userChallenge.setAffliateLink("https://play.google.com/store/apps/details?id="+newChallenge.getProductCataloge().getPlaystoreLink()+"&referrer=utm_content="+u.getUsername()+"&utm_source=coopLoyalityApp");
           }
-          userChallenge.setAffliateLink(null);
           userChallengsService.addUserChallenge(userChallenge);
         });
         CreateResponse response = new CreateResponse("Success","Challenge created successfully");

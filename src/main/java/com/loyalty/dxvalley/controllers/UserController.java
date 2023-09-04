@@ -25,6 +25,9 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.loyalty.dxvalley.models.Challenge;
+import com.loyalty.dxvalley.models.CreateResponse;
+import com.loyalty.dxvalley.models.InvitationDTO;
+import com.loyalty.dxvalley.models.InvitedUsers;
 import com.loyalty.dxvalley.models.UserChallenge;
 import com.loyalty.dxvalley.models.Users;
 import com.loyalty.dxvalley.repositories.RoleRepository;
@@ -43,7 +46,7 @@ import lombok.Setter;
 @RequestMapping("/api/users")
 public class UserController {
   @Autowired
- // private UsersServiceImpl usersServiceImpl;
+  // private UsersServiceImpl usersServiceImpl;
   private final UserRepository userRepository;
   private final RoleRepository roleRepo;
   private final PasswordEncoder passwordEncoder;
@@ -51,15 +54,46 @@ public class UserController {
   private final UserChallengsService userChallengsService;
 
   // private boolean isSysAdmin() {
-  //   AtomicBoolean hasSysAdmin = new AtomicBoolean(false);
-  //   Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-  //   auth.getAuthorities().forEach(grantedAuthority -> {
-  //     if (grantedAuthority.getAuthority().equals("sysAdmin")) {
-  //       hasSysAdmin.set(true);
-  //     }
-  //   });
-  //   return hasSysAdmin.get();
+  // AtomicBoolean hasSysAdmin = new AtomicBoolean(false);
+  // Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+  // auth.getAuthorities().forEach(grantedAuthority -> {
+  // if (grantedAuthority.getAuthority().equals("sysAdmin")) {
+  // hasSysAdmin.set(true);
   // }
+  // });
+  // return hasSysAdmin.get();
+  // }
+  Boolean alreadyInvited = false;
+
+  @PostMapping("/AddInvitation")
+  public ResponseEntity<CreateResponse> addInvitation(@RequestBody InvitationDTO invitationDTO) {
+    Users users = userRepository.findByUsername(invitationDTO.getInviter());
+    List<InvitedUsers> invitedUsers = userRepository.findByUsername(invitationDTO.getInviter()).getInvitedUsers();
+    alreadyInvited = false;
+    for (int i = 0; i < invitedUsers.size(); i++) {
+      if (invitedUsers.get(i).getUsername().equals(invitationDTO.getInvitee())) {
+        alreadyInvited = true;
+      }
+    }
+    if(alreadyInvited!=true)
+    {
+    DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
+    Date currentDate = new Date();
+    InvitedUsers invitedUser = new InvitedUsers();
+    invitedUser.setJoinedAt(dateFormat.format(currentDate));
+    invitedUser.setUsername(invitationDTO.getInvitee());
+    invitedUsers.add(invitedUser);
+    users.setInvitedUsers(invitedUsers);
+    userRepository.save(users);
+    CreateResponse response = new CreateResponse("Success","Users Invited List updated successfully created successfully");
+    return new ResponseEntity<>(response, HttpStatus.OK);
+    }
+    else{
+       CreateResponse response = new CreateResponse("Success","User already invited");
+    return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
+    }
+    
+  }
 
   private boolean isOwnAccount(String userName) {
     Authentication auth = SecurityContextHolder.getContext().getAuthentication();
@@ -68,22 +102,22 @@ public class UserController {
 
   // @GetMapping("/getuserServiceImpl")
   // List<Users> getUsers() {
-  //   if (isSysAdmin()) {
-  //     return this.userRepository.findAll(Sort.by("username"));
-  //   }
-  //   var users = this.userRepository.findAll(Sort.by("username"));
-  //   users.removeIf(user -> {
-  //     var containsAdmin = false;
-  //     for (var role : user.getRoles()) {
-  //       containsAdmin = containsAdmin || role.getRoleName().equals("admin");
-  //     }
-  //     return containsAdmin;
-  //   });
-  //   return users;
+  // if (isSysAdmin()) {
+  // return this.userRepository.findAll(Sort.by("username"));
+  // }
+  // var users = this.userRepository.findAll(Sort.by("username"));
+  // users.removeIf(user -> {
+  // var containsAdmin = false;
+  // for (var role : user.getRoles()) {
+  // containsAdmin = containsAdmin || role.getRoleName().equals("admin");
+  // }
+  // return containsAdmin;
+  // });
+  // return users;
   // }
   @GetMapping("/getUsers")
   List<Users> getAllUsers() {
-   List<Users> users=userRepository.findAll();
+    List<Users> users = userRepository.findAll();
     return users;
   }
 
@@ -97,54 +131,53 @@ public class UserController {
 
     return new ResponseEntity<>(user, HttpStatus.OK);
   }
-  
+
   @GetMapping("/getAppUsers")
   List<Users> getAppUsers() {
-    List<Users> users=userRepository.findAll();
-    List<Users> appUsers= new ArrayList<Users>();
-    users.stream().forEach(u->{
-          u.getRoles().stream().forEach(r->{
-            if(r.getRoleName().equals("loyaltyAppUser"))
-            {
-              appUsers.add(u);
-            }
-          });
+    List<Users> users = userRepository.findAll();
+    List<Users> appUsers = new ArrayList<Users>();
+    users.stream().forEach(u -> {
+      u.getRoles().stream().forEach(r -> {
+        if (r.getRoleName().equals("loyaltyAppUser")) {
+          appUsers.add(u);
+        }
+      });
     });
     return appUsers;
   }
-   @GetMapping("/getAdminUsers")
+
+  @GetMapping("/getAdminUsers")
   List<Users> getAdminUsers() {
-    List<Users> users=userRepository.findAll();
-    List<Users> adminUsers= new ArrayList<Users>();
-    users.stream().forEach(u->{
-          u.getRoles().stream().forEach(r->{
-            if(r.getRoleName().equals("superAdmin")||r.getRoleName().equals("admin"))
-            {
-              adminUsers.add(u);
-            }
-          });
+    List<Users> users = userRepository.findAll();
+    List<Users> adminUsers = new ArrayList<Users>();
+    users.stream().forEach(u -> {
+      u.getRoles().stream().forEach(r -> {
+        if (r.getRoleName().equals("superAdmin") || r.getRoleName().equals("admin")) {
+          adminUsers.add(u);
+        }
+      });
     });
     return adminUsers;
   }
 
   // @GetMapping("/getUserProfile/{phoneNumber}")
   // public GetUserProfile getUserProfile(@PathVariable String phoneNumber) {
-  //   GetUserProfile getUserProfile = new GetUserProfile();
-  //   Users user = userRepository.findByUsername(phoneNumber);
-  //   getUserProfile.setFullName(user.getFullName());
-  //   getUserProfile.setPhoneNumber(user.getUsername());
-  //   getUserProfile.setEmail(user.getEmail());
-  //   List<Account> accounts = user.getAccounts();
-  //   String mainAccount = "";
-  //   for (int i = 0; i < accounts.size(); i++) {
-  //     if (accounts.get(i).getIsMainAccount() == true) {
-  //       mainAccount = accounts.get(i).getAccountNumber();
-  //     }
-  //   }
-  //   getUserProfile.setAccountNumber(mainAccount);
-  //   getUserProfile.setBirthDate(user.getBirthDate());
-  //   getUserProfile.setProfileImage(user.getImageUrl());
-  //   return getUserProfile;
+  // GetUserProfile getUserProfile = new GetUserProfile();
+  // Users user = userRepository.findByUsername(phoneNumber);
+  // getUserProfile.setFullName(user.getFullName());
+  // getUserProfile.setPhoneNumber(user.getUsername());
+  // getUserProfile.setEmail(user.getEmail());
+  // List<Account> accounts = user.getAccounts();
+  // String mainAccount = "";
+  // for (int i = 0; i < accounts.size(); i++) {
+  // if (accounts.get(i).getIsMainAccount() == true) {
+  // mainAccount = accounts.get(i).getAccountNumber();
+  // }
+  // }
+  // getUserProfile.setAccountNumber(mainAccount);
+  // getUserProfile.setBirthDate(user.getBirthDate());
+  // getUserProfile.setProfileImage(user.getImageUrl());
+  // return getUserProfile;
   // }
 
   @GetMapping("/getUserByPhone/{username}")
@@ -170,55 +203,49 @@ public class UserController {
         tempUser.getRoles().stream().map(x -> this.roleRepo.findByRoleName(x.getRoleName()))
             .collect(Collectors.toList()));
     tempUser.setPassword(passwordEncoder.encode(tempUser.getPassword()));
-    List<Challenge> challenges=challengsService.getChallenges();
-    challenges.stream().forEach(c->{
-       DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
-    Date currentDate = new Date();
-      UserChallenge userChallenge= new UserChallenge();
+    List<Challenge> challenges = challengsService.getChallenges();
+    challenges.stream().forEach(c -> {
+      DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
+      Date currentDate = new Date();
+      UserChallenge userChallenge = new UserChallenge();
       userChallenge.setChallenge(c);
       userChallenge.setJoinedAt(dateFormat.format(currentDate));
       userChallenge.setIsEnabled(true);
       userChallenge.setPoints(0.0);
-      Users newUser=userRepository.save(tempUser);
+      Users newUser = userRepository.save(tempUser);
       userChallenge.setUsers(newUser);
-      if(c.getProductCataloge().getPlaystoreLink()!=null)
-      {
-        userChallenge.setAffliateLink(c.getProductCataloge().getPlaystoreLink()+"?inviter="+newUser.getUsername());
+      if (c.getProductCataloge().getPlaystoreLink() != null) {
+        userChallenge.setAffliateLink(
+            "https://play.google.com/store/apps/details?id=" + c.getProductCataloge().getPlaystoreLink()
+                + "&referrer=utm_content=" + newUser.getUsername() + "&utm_source=coopLoyalityApp");
       }
-      userChallengsService.addUserChallenge(userChallenge);  
+      userChallengsService.addUserChallenge(userChallenge);
     });
     createUserResponse response = new createUserResponse("success", "user created successfully");
     return new ResponseEntity<>(response, HttpStatus.OK);
   }
 
-
-  
-
-
   // @GetMapping("/search")
   // public List<String> getUsers(@RequestParam Long userId) {
-  //   List<Users> users = usersServiceImpl.getAllUsers();
-  //     List<Users> filteredUsers = users.stream()
-  //             .filter(u -> u.getUserId().equals(userId))
-  //             .collect(Collectors.toList());
-  //     List<String> user = new ArrayList<>();
-  //     filteredUsers.forEach(u -> {
-  //       user.add(u.getEmail());
-  //       user.add(u.getFullName());
-  //       user.add(u.getUsername());});
-  //     return user;
+  // List<Users> users = usersServiceImpl.getAllUsers();
+  // List<Users> filteredUsers = users.stream()
+  // .filter(u -> u.getUserId().equals(userId))
+  // .collect(Collectors.toList());
+  // List<String> user = new ArrayList<>();
+  // filteredUsers.forEach(u -> {
+  // user.add(u.getEmail());
+  // user.add(u.getFullName());
+  // user.add(u.getUsername());});
+  // return user;
   // }
 
   // @GetMapping("/userId")
   // public List<Users> getUsersByUserId(@RequestParam Long userId) {
-  //     List<Users> users = usersServiceImpl.getAllUsers();
-  //     return users.stream()
-  //             .filter(u -> u.getUserId().equals(userId)) 
-  //             .collect(Collectors.toList());         
+  // List<Users> users = usersServiceImpl.getAllUsers();
+  // return users.stream()
+  // .filter(u -> u.getUserId().equals(userId))
+  // .collect(Collectors.toList());
   // }
-
-
-
 
   @PutMapping("/passwordReset/{phoneNumber}")
   public ResponseEntity<pinchangeResponse> passwordReset(@RequestBody Users tempUser,
@@ -234,7 +261,7 @@ public class UserController {
     return new ResponseEntity<>(response, HttpStatus.OK);
 
   }
-  
+
   @PutMapping("/editUser/{phoneNumber}")
   public ResponseEntity<pinchangeResponse> editUser(@RequestBody Users tempUser,
       @PathVariable String phoneNumber) {
@@ -256,28 +283,25 @@ public class UserController {
     return new ResponseEntity<>(response, HttpStatus.OK);
 
   }
-  
+
   @PutMapping("/changePassword/{phoneNumber}/{password}")
   public ResponseEntity<pinchangeResponse> ChangePassword(@RequestBody Users tempUser,
-      @PathVariable String phoneNumber,@PathVariable String password) {
+      @PathVariable String phoneNumber, @PathVariable String password) {
     Users user = userRepository.findByUsername(phoneNumber);
     // edit(tempUser,user);
     // user.setUsername(tempUser.getUsername());
     System.out.println(user.getPassword());
     System.out.println(password);
-    if(passwordEncoder.matches(password, user.getPassword()))
-    {
-     
+    if (passwordEncoder.matches(password, user.getPassword())) {
+
       user.setPassword(passwordEncoder.encode(tempUser.getPassword()));
-    userRepository.save(user);
-    // .setPassword(null);
-    pinchangeResponse response = new pinchangeResponse("success");
-    return new ResponseEntity<>(response, HttpStatus.OK);
-    }
-    else
-    {
+      userRepository.save(user);
+      // .setPassword(null);
+      pinchangeResponse response = new pinchangeResponse("success");
+      return new ResponseEntity<>(response, HttpStatus.OK);
+    } else {
       pinchangeResponse response = new pinchangeResponse("incorrect old password");
-      return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST); 
+      return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
     }
 
   }

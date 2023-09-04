@@ -21,7 +21,6 @@ import com.loyalty.dxvalley.models.Users;
 import com.loyalty.dxvalley.repositories.LevelssRepository;
 import com.loyalty.dxvalley.repositories.UserChallengeRepository;
 import com.loyalty.dxvalley.repositories.UserRepository;
-import com.loyalty.dxvalley.services.LevelssService;
 import com.loyalty.dxvalley.services.SettingsService;
 import com.loyalty.dxvalley.services.UserChallengsService;
 
@@ -63,7 +62,7 @@ public class UserChallengesServiceImpl implements UserChallengsService {
             }
 
             userChallengeDTO
-                    .setAffliateLink("https://play.google.com/store/apps/details?id=om.example.michuapp&user_id=1");
+                    .setAffliateLink(uc.getAffliateLink());
             userChallengeDTO.setPointsEarned(uc.getPoints().toString());
             userChallengeDTO.setAwardPoints(uc.getChallenge().getPoints().toString());
             points += uc.getPoints();
