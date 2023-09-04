@@ -181,6 +181,10 @@ public class UserController {
       userChallenge.setPoints(0.0);
       Users newUser=userRepository.save(tempUser);
       userChallenge.setUsers(newUser);
+      if(c.getProductCataloge().getPlaystoreLink()!=null)
+      {
+        userChallenge.setAffliateLink(c.getProductCataloge().getPlaystoreLink()+"?inviter="+newUser.getUsername());
+      }
       userChallengsService.addUserChallenge(userChallenge);  
     });
     createUserResponse response = new createUserResponse("success", "user created successfully");

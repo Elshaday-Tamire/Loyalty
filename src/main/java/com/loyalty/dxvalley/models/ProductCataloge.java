@@ -25,6 +25,7 @@ public class ProductCataloge {
     private String productName;
     private String productLogo;
     private String description;
+    private String playstoreLink;
      @JsonFormat(pattern="yyyy-MM-dd",shape = Shape.STRING)
     @Column(name="createdAt")
     private String  createdAt;

@@ -46,6 +46,10 @@ public class ChallengsController {
           userChallenge.setIsEnabled(true);
           userChallenge.setJoinedAt(dateFormat.format(currentDate));
           userChallenge.setPoints(0.0);
+          if(newChallenge.getProductCataloge().getPlaystoreLink()!=null)
+          {
+            userChallenge.setAffliateLink(newChallenge.getProductCataloge().getPlaystoreLink()+"?inviter="+u.getUsername());
+          }
           userChallenge.setAffliateLink(null);
           userChallengsService.addUserChallenge(userChallenge);
         });
