@@ -28,11 +28,13 @@ import com.loyalty.dxvalley.models.Challenge;
 import com.loyalty.dxvalley.models.CreateResponse;
 import com.loyalty.dxvalley.models.InvitationDTO;
 import com.loyalty.dxvalley.models.InvitedUsers;
+import com.loyalty.dxvalley.models.ProductCataloge;
 import com.loyalty.dxvalley.models.UserChallenge;
 import com.loyalty.dxvalley.models.Users;
 import com.loyalty.dxvalley.repositories.RoleRepository;
 import com.loyalty.dxvalley.repositories.UserRepository;
 import com.loyalty.dxvalley.services.ChallengsService;
+import com.loyalty.dxvalley.services.ProductCatalogService;
 import com.loyalty.dxvalley.services.UserChallengsService;
 
 import lombok.AllArgsConstructor;
@@ -52,6 +54,7 @@ public class UserController {
   private final PasswordEncoder passwordEncoder;
   private final ChallengsService challengsService;
   private final UserChallengsService userChallengsService;
+  private final ProductCatalogService productCatalogService;
 
   // private boolean isSysAdmin() {
   // AtomicBoolean hasSysAdmin = new AtomicBoolean(false);
@@ -65,9 +68,13 @@ public class UserController {
   // }
   Boolean alreadyInvited = false;
 
-  @PostMapping("/AddInvitation")
+  @PostMapping("/michu/AddInvitation")
   public ResponseEntity<CreateResponse> addInvitation(@RequestBody InvitationDTO invitationDTO) {
     Users users = userRepository.findByUsername(invitationDTO.getInviter());
+    if(users==null){
+        CreateResponse response = new CreateResponse("Error","User does not exist");
+        return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
+    }
     List<InvitedUsers> invitedUsers = userRepository.findByUsername(invitationDTO.getInviter()).getInvitedUsers();
     alreadyInvited = false;
     for (int i = 0; i < invitedUsers.size(); i++) {
@@ -82,14 +89,29 @@ public class UserController {
     InvitedUsers invitedUser = new InvitedUsers();
     invitedUser.setJoinedAt(dateFormat.format(currentDate));
     invitedUser.setUsername(invitationDTO.getInvitee());
+    List<ProductCataloge> productCataloges= productCatalogService.getChallengeCataloges();
+    productCataloges.stream().forEach(p->{
+      if(p.getProductName().equals("Michu"))
+      {
+          invitedUser.setProductCataloge(p);
+      }
+    });
     invitedUsers.add(invitedUser);
     users.setInvitedUsers(invitedUsers);
     userRepository.save(users);
-    CreateResponse response = new CreateResponse("Success","Users Invited List updated successfully created successfully");
+    List<UserChallenge> userChallenges= userChallengsService.getUserChallengesByuser(userRepository.findByUsername(invitationDTO.getInviter()));
+    userChallenges.stream().forEach(uc->{
+      if(uc.getChallenge().getCategory().getCategoryName().equals("referal")&&uc.getChallenge().getProductCataloge().getProductName().equals("Michu")&&uc.getChallenge().getMaxPoints()>=(uc.getPoints()+uc.getChallenge().getPoints()))
+      {
+          uc.setPoints(uc.getPoints()+uc.getChallenge().getPoints());
+           userChallengsService.addUserChallenge(uc);
+      }
+    });
+    CreateResponse response = new CreateResponse("Success","User's Invited List updated successfully created successfully");
     return new ResponseEntity<>(response, HttpStatus.OK);
     }
     else{
-       CreateResponse response = new CreateResponse("Success","User already invited");
+       CreateResponse response = new CreateResponse("Error","User already invited");
     return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
     }
     

@@ -92,8 +92,8 @@ public class UserChallengesServiceImpl implements UserChallengsService {
 
             else if (points >= l.getMaxValue()) {
                 levelDetails.setStatus("2");
-                // dashboardData.setLevelColor(l.getColour());
-                //   dashboardData.setLevelName(l.getLevelName());
+                dashboardData.setLevelColor(l.getColour());
+                  dashboardData.setLevelName(l.getLevelName());
             }
             levelDetails.setLevelName(l.getLevelName());
             levelDetails.setPoints(l.getMaxValue().toString());

@@ -3,6 +3,9 @@ package com.loyalty.dxvalley.controllers;
 import java.io.File;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -49,15 +52,16 @@ public class ProductCatalogeController {
   // }
   @GetMapping("/{productCatalogId}")
   ProductCataloge getProductCatalogs(@PathVariable Long productCatalogId) {
-      ProductCataloge productCataloge=  productCatalogService.getProductCatalogeById(productCatalogId);
-      File imageFile = new File(uploadDir, productCataloge.getLogoMetadata().getFileName());
-       if (imageFile.exists() && imageFile.isFile()) {
-          String encodedFileName = UriUtils.encode(productCataloge.getLogoMetadata().getFileName(), StandardCharsets.UTF_8);
-          String imageUrl = "http://10.1.177.123:9000/api/images/" + encodedFileName;
-          productCataloge.setProductLogo(imageUrl);
-      }
-      return productCataloge;
+    ProductCataloge productCataloge = productCatalogService.getProductCatalogeById(productCatalogId);
+    File imageFile = new File(uploadDir, productCataloge.getLogoMetadata().getFileName());
+    if (imageFile.exists() && imageFile.isFile()) {
+      String encodedFileName = UriUtils.encode(productCataloge.getLogoMetadata().getFileName(), StandardCharsets.UTF_8);
+      String imageUrl = "http://10.1.177.123:9000/api/images/" + encodedFileName;
+      productCataloge.setProductLogo(imageUrl);
+    }
+    return productCataloge;
   }
+
   @Transactional
   @PostMapping("/addProductCataloge")
   public ResponseEntity<CreateResponse> addProductCataloge(
@@ -65,12 +69,16 @@ public class ProductCatalogeController {
       @RequestParam("productLogo") String productLogo,
       @RequestParam("description") String description,
       @RequestParam("createdAt") String createdAt,
+      @RequestParam("playstoreLink") String playstoreLink,
       @RequestParam("logoFile") MultipartFile logoFile) {
+    DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
+    Date currentDate = new Date();
     ProductCataloge productCataloge = new ProductCataloge();
     productCataloge.setProductName(productName);
     productCataloge.setProductLogo(productLogo);
     productCataloge.setDescription(description);
-    productCataloge.setCreatedAt(createdAt);
+    productCataloge.setPlaystoreLink(playstoreLink);
+    productCataloge.setCreatedAt(dateFormat.format(currentDate));
 
     // Save the product catalog information to the database
     productCatalogService.addProductCataloge(productCataloge);
@@ -113,52 +121,56 @@ public class ProductCatalogeController {
   @Transactional
   @PutMapping("/edit/{productCatalogeId}")
   public ResponseEntity<CreateResponse> editProductCataloge(
-          @PathVariable Long productCatalogeId,
-          @RequestParam(required = false) String productName,
-          @RequestParam(required = false) String productLogo,
-          @RequestParam(required = false) String description,
-          @RequestParam(required = false) String createdAt,
-          @RequestParam(required = false) MultipartFile logoFile) {
-      ProductCataloge productCataloge = productCatalogService.getProductCatalogeById(productCatalogeId);
-  
-      if (productName != null) {
-          productCataloge.setProductName(productName);
+      @PathVariable Long productCatalogeId,
+      @RequestParam(required = false) String productName,
+      @RequestParam(required = false) String productLogo,
+      @RequestParam(required = false) String description,
+      @RequestParam(required = false) String createdAt,
+      @RequestParam(required = false) String playstoreLink,
+      @RequestParam(required = false) MultipartFile logoFile) {
+    ProductCataloge productCataloge = productCatalogService.getProductCatalogeById(productCatalogeId);
+
+    if (productName != null) {
+      productCataloge.setProductName(productName);
+    }
+    if (productLogo != null) {
+      productCataloge.setProductLogo(productLogo);
+    }
+    if (description != null) {
+      productCataloge.setDescription(description);
+    }
+    if (createdAt != null) {
+      productCataloge.setCreatedAt(createdAt);
+    }
+    if (playstoreLink != null) {
+      productCataloge.setPlaystoreLink(playstoreLink);
+    }
+    // Save the product catalog information to the database or perform other
+    // operations
+    productCatalogService.editProductCataloge(productCataloge);
+
+    // Handle the logo file separately if provided
+    if (logoFile != null && !logoFile.isEmpty()) {
+      String fileName = logoFile.getOriginalFilename();
+      File file = new File(uploadDir + File.separator + fileName);
+      try {
+        logoFile.transferTo(file);
+
+        // Create ImageMetadata entity and save it to associate with ProductCataloge
+        // entity
+        ImageMetadata logoMetadata = new ImageMetadata();
+        logoMetadata.setFileName(fileName);
+        imageMetadataRepository.save(logoMetadata);
+
+        productCataloge.setLogoMetadata(logoMetadata); // Associate with main entity
+      } catch (IOException e) {
+        // Handle file upload exception
       }
-      if (productLogo != null) {
-          productCataloge.setProductLogo(productLogo);
-      }
-      if (description != null) {
-          productCataloge.setDescription(description);
-      }
-      if (createdAt != null) {
-          productCataloge.setCreatedAt(createdAt);
-      }
-  
-      // Save the product catalog information to the database or perform other operations
-      productCatalogService.editProductCataloge(productCataloge);
-  
-      // Handle the logo file separately if provided
-      if (logoFile != null && !logoFile.isEmpty()) {
-          String fileName = logoFile.getOriginalFilename();
-          File file = new File(uploadDir + File.separator + fileName);
-          try {
-              logoFile.transferTo(file);
-  
-              // Create ImageMetadata entity and save it to associate with ProductCataloge entity
-              ImageMetadata logoMetadata = new ImageMetadata();
-              logoMetadata.setFileName(fileName);
-              imageMetadataRepository.save(logoMetadata);
-  
-              productCataloge.setLogoMetadata(logoMetadata); // Associate with main entity
-          } catch (IOException e) {
-              // Handle file upload exception
-          }
-      }
-  
-      CreateResponse response = new CreateResponse("Success", "Product catalog updated successfully");
-      return new ResponseEntity<>(response, HttpStatus.OK);
+    }
+
+    CreateResponse response = new CreateResponse("Success", "Product catalog updated successfully");
+    return new ResponseEntity<>(response, HttpStatus.OK);
   }
-  
 
   // @GetMapping("/getAll")
   // List<ProductCataloge> getAll() {

@@ -20,7 +20,7 @@ public class Challenge {
     private Long challengeId;
     private String challengeName;
     private String description;
-    private String points;
+    private Double points;
     private Long maxPoints;
     private String icon;
     private Boolean isEnabled;
