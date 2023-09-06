@@ -18,7 +18,7 @@ import lombok.Setter;
 @RequiredArgsConstructor
 @Entity
 public class InvitedUsers {
-     @Id
+    @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
     private Long invtedUserId;
     private String username;

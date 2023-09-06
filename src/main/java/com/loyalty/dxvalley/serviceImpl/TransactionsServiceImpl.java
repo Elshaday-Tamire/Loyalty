@@ -29,6 +29,10 @@ public class TransactionsServiceImpl implements TransactionsService {
     public List<Transactionss> getAll() {
         return transactionsRepository.findAll();
     }
+    @Override
+    public Transactionss addTransactionss(Transactionss transactionss) {
+       return transactionsRepository.save(transactionss);
+    }
     
 
 }

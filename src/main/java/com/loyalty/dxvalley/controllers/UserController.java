@@ -29,12 +29,15 @@ import com.loyalty.dxvalley.models.CreateResponse;
 import com.loyalty.dxvalley.models.InvitationDTO;
 import com.loyalty.dxvalley.models.InvitedUsers;
 import com.loyalty.dxvalley.models.ProductCataloge;
+import com.loyalty.dxvalley.models.Transactionss;
 import com.loyalty.dxvalley.models.UserChallenge;
 import com.loyalty.dxvalley.models.Users;
 import com.loyalty.dxvalley.repositories.RoleRepository;
 import com.loyalty.dxvalley.repositories.UserRepository;
 import com.loyalty.dxvalley.services.ChallengsService;
+import com.loyalty.dxvalley.services.InvitedUsersService;
 import com.loyalty.dxvalley.services.ProductCatalogService;
+import com.loyalty.dxvalley.services.TransactionsService;
 import com.loyalty.dxvalley.services.UserChallengsService;
 
 import lombok.AllArgsConstructor;
@@ -55,6 +58,8 @@ public class UserController {
   private final ChallengsService challengsService;
   private final UserChallengsService userChallengsService;
   private final ProductCatalogService productCatalogService;
+  private final InvitedUsersService invitedUsersService;
+  private final TransactionsService transactionsService;
 
   // private boolean isSysAdmin() {
   // AtomicBoolean hasSysAdmin = new AtomicBoolean(false);
@@ -69,52 +74,197 @@ public class UserController {
   Boolean alreadyInvited = false;
 
   @PostMapping("/michu/AddInvitation")
-  public ResponseEntity<CreateResponse> addInvitation(@RequestBody InvitationDTO invitationDTO) {
+  public ResponseEntity<CreateResponse> addMichuInvitation(@RequestBody InvitationDTO invitationDTO) {
     Users users = userRepository.findByUsername(invitationDTO.getInviter());
-    if(users==null){
-        CreateResponse response = new CreateResponse("Error","User does not exist");
-        return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
+    if (users == null) {
+      CreateResponse response = new CreateResponse("Error", "User does not exist");
+      return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
     }
     List<InvitedUsers> invitedUsers = userRepository.findByUsername(invitationDTO.getInviter()).getInvitedUsers();
     alreadyInvited = false;
-    for (int i = 0; i < invitedUsers.size(); i++) {
-      if (invitedUsers.get(i).getUsername().equals(invitationDTO.getInvitee())) {
+    List<InvitedUsers> allInvitedUsers = invitedUsersService.getInvitedUsers();
+    for (int i = 0; i < allInvitedUsers.size(); i++) {
+      if (allInvitedUsers.get(i).getUsername().equals(invitationDTO.getInvitee())
+          && allInvitedUsers.get(i).getProductCataloge().getProductName().equals("Michu")) {
         alreadyInvited = true;
       }
     }
-    if(alreadyInvited!=true)
-    {
-    DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
-    Date currentDate = new Date();
-    InvitedUsers invitedUser = new InvitedUsers();
-    invitedUser.setJoinedAt(dateFormat.format(currentDate));
-    invitedUser.setUsername(invitationDTO.getInvitee());
-    List<ProductCataloge> productCataloges= productCatalogService.getChallengeCataloges();
-    productCataloges.stream().forEach(p->{
-      if(p.getProductName().equals("Michu"))
-      {
+    if (alreadyInvited != true) {
+      DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
+      Date currentDate = new Date();
+      InvitedUsers invitedUser = new InvitedUsers();
+      invitedUser.setJoinedAt(dateFormat.format(currentDate));
+      invitedUser.setUsername(invitationDTO.getInvitee());
+      List<ProductCataloge> productCataloges = productCatalogService.getChallengeCataloges();
+      productCataloges.stream().forEach(p -> {
+        if (p.getProductName().equals("Michu")) {
           invitedUser.setProductCataloge(p);
+        }
+      });
+      invitedUsers.add(invitedUser);
+      Users userToBeChekced = userRepository.findByUsername(invitationDTO.getInvitee());
+      if (userToBeChekced == null) {
+        Users newUser = new Users();
+        newUser.setUsername(invitationDTO.getInvitee());
+        Users savedUser = userRepository.save(newUser);
+        List<Challenge> challenges = challengsService.getChallenges();
+        challenges.stream().forEach(c -> {
+
+          UserChallenge userChallenge = new UserChallenge();
+          userChallenge.setChallenge(c);
+          userChallenge.setJoinedAt(dateFormat.format(currentDate));
+          userChallenge.setIsEnabled(true);
+          if (c.getCategory().getCategoryName().equals("referal")
+              && c.getProductCataloge().getProductName().equals("Michu")
+              && c.getMaxPoints() >= (c.getPoints())) {
+            userChallenge.setPoints(c.getPoints());
+            Transactionss transactionss = new Transactionss();
+            transactionss.setAmount(c.getPoints());
+            transactionss.setGeneratedDate(dateFormat.format(currentDate));
+            transactionss.setNaration("michu referal");
+            transactionss.setStatus("Success");
+            transactionss.setTransactionType("credit");
+            transactionss.setUser(userRepository.findByUsername(invitationDTO.getInvitee()));
+            transactionsService.addTransactionss(transactionss);
+          } else {
+            userChallenge.setPoints(0.0);
+          }
+
+          userChallenge.setUsers(savedUser);
+          if (c.getProductCataloge().getPlaystoreLink() != null) {
+            userChallenge.setAffliateLink(
+                "https://play.google.com/store/apps/details?id=" + c.getProductCataloge().getPlaystoreLink()
+                    + "&referrer=utm_content=" + newUser.getUsername() + "&utm_source=coopLoyalityApp");
+          }
+          userChallengsService.addUserChallenge(userChallenge);
+
+        });
       }
-    });
-    invitedUsers.add(invitedUser);
-    users.setInvitedUsers(invitedUsers);
-    userRepository.save(users);
-    List<UserChallenge> userChallenges= userChallengsService.getUserChallengesByuser(userRepository.findByUsername(invitationDTO.getInviter()));
-    userChallenges.stream().forEach(uc->{
-      if(uc.getChallenge().getCategory().getCategoryName().equals("referal")&&uc.getChallenge().getProductCataloge().getProductName().equals("Michu")&&uc.getChallenge().getMaxPoints()>=(uc.getPoints()+uc.getChallenge().getPoints()))
-      {
-          uc.setPoints(uc.getPoints()+uc.getChallenge().getPoints());
-           userChallengsService.addUserChallenge(uc);
+      users.setInvitedUsers(invitedUsers);
+      userRepository.save(users);
+      List<UserChallenge> userChallenges = userChallengsService
+          .getUserChallengesByuser(userRepository.findByUsername(invitationDTO.getInviter()));
+      userChallenges.stream().forEach(uc -> {
+        if (uc.getChallenge().getCategory().getCategoryName().equals("referal")
+            && uc.getChallenge().getProductCataloge().getProductName().equals("Michu")
+            && uc.getChallenge().getMaxPoints() >= (uc.getPoints() + uc.getChallenge().getPoints())) {
+          uc.setPoints(uc.getPoints() + uc.getChallenge().getPoints());
+          userChallengsService.addUserChallenge(uc);
+          Transactionss transactionss = new Transactionss();
+          transactionss.setAmount(uc.getChallenge().getPoints());
+          transactionss.setGeneratedDate(dateFormat.format(currentDate));
+          transactionss.setNaration("michu referal");
+          transactionss.setStatus("Success");
+          transactionss.setTransactionType("credit");
+          transactionss.setUser(userRepository.findByUsername(invitationDTO.getInviter()));
+          transactionsService.addTransactionss(transactionss);
+        }
+      });
+      CreateResponse response = new CreateResponse("Success",
+          "User's Invited List updated successfully created successfully");
+      return new ResponseEntity<>(response, HttpStatus.OK);
+    } else {
+      CreateResponse response = new CreateResponse("Error", "User already invited");
+      return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
+    }
+
+  }
+
+  @PostMapping("/equb/AddInvitation")
+  public ResponseEntity<CreateResponse> addEqubInvitation(@RequestBody InvitationDTO invitationDTO) {
+    Users users = userRepository.findByUsername(invitationDTO.getInviter());
+    if (users == null) {
+      CreateResponse response = new CreateResponse("Error", "User does not exist");
+      return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
+    }
+    List<InvitedUsers> invitedUsers = userRepository.findByUsername(invitationDTO.getInviter()).getInvitedUsers();
+    alreadyInvited = false;
+    List<InvitedUsers> allInvitedUsers = invitedUsersService.getInvitedUsers();
+    for (int i = 0; i < allInvitedUsers.size(); i++) {
+      if (allInvitedUsers.get(i).getUsername().equals(invitationDTO.getInvitee())
+          && allInvitedUsers.get(i).getProductCataloge().getProductName().equals("My-Equb")) {
+        alreadyInvited = true;
       }
-    });
-    CreateResponse response = new CreateResponse("Success","User's Invited List updated successfully created successfully");
-    return new ResponseEntity<>(response, HttpStatus.OK);
     }
-    else{
-       CreateResponse response = new CreateResponse("Error","User already invited");
-    return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
+    if (alreadyInvited != true) {
+      DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
+      Date currentDate = new Date();
+      InvitedUsers invitedUser = new InvitedUsers();
+      invitedUser.setJoinedAt(dateFormat.format(currentDate));
+      invitedUser.setUsername(invitationDTO.getInvitee());
+      List<ProductCataloge> productCataloges = productCatalogService.getChallengeCataloges();
+      productCataloges.stream().forEach(p -> {
+        if (p.getProductName().equals("My-Equb")) {
+          invitedUser.setProductCataloge(p);
+        }
+      });
+      invitedUsers.add(invitedUser);
+      Users userToBeChekced = userRepository.findByUsername(invitationDTO.getInvitee());
+      if (userToBeChekced == null) {
+        Users newUser = new Users();
+        newUser.setUsername(invitationDTO.getInvitee());
+        Users savedUser = userRepository.save(newUser);
+        List<Challenge> challenges = challengsService.getChallenges();
+        challenges.stream().forEach(c -> {
+
+          UserChallenge userChallenge = new UserChallenge();
+          userChallenge.setChallenge(c);
+          userChallenge.setJoinedAt(dateFormat.format(currentDate));
+          userChallenge.setIsEnabled(true);
+          if (c.getCategory().getCategoryName().equals("referal")
+              && c.getProductCataloge().getProductName().equals("My-Equb")
+              && c.getMaxPoints() >= (c.getPoints())) {
+            userChallenge.setPoints(c.getPoints());
+            Transactionss transactionss = new Transactionss();
+            transactionss.setAmount(c.getPoints());
+            transactionss.setGeneratedDate(dateFormat.format(currentDate));
+            transactionss.setNaration("My-Equb referal");
+            transactionss.setStatus("Success");
+            transactionss.setTransactionType("credit");
+            transactionss.setUser(userRepository.findByUsername(invitationDTO.getInvitee()));
+            transactionsService.addTransactionss(transactionss);
+          } else {
+            userChallenge.setPoints(0.0);
+          }
+
+          userChallenge.setUsers(savedUser);
+          if (c.getProductCataloge().getPlaystoreLink() != null) {
+            userChallenge.setAffliateLink(
+                "https://play.google.com/store/apps/details?id=" + c.getProductCataloge().getPlaystoreLink()
+                    + "&referrer=utm_content=" + newUser.getUsername() + "&utm_source=coopLoyalityApp");
+          }
+          userChallengsService.addUserChallenge(userChallenge);
+
+        });
+      }
+      users.setInvitedUsers(invitedUsers);
+      userRepository.save(users);
+      List<UserChallenge> userChallenges = userChallengsService
+          .getUserChallengesByuser(userRepository.findByUsername(invitationDTO.getInviter()));
+      userChallenges.stream().forEach(uc -> {
+        if (uc.getChallenge().getCategory().getCategoryName().equals("referal")
+            && uc.getChallenge().getProductCataloge().getProductName().equals("My-Equb")
+            && uc.getChallenge().getMaxPoints() >= (uc.getPoints() + uc.getChallenge().getPoints())) {
+          uc.setPoints(uc.getPoints() + uc.getChallenge().getPoints());
+          userChallengsService.addUserChallenge(uc);
+          Transactionss transactionss = new Transactionss();
+          transactionss.setAmount(uc.getChallenge().getPoints());
+          transactionss.setGeneratedDate(dateFormat.format(currentDate));
+          transactionss.setNaration("My-Equb referal");
+          transactionss.setStatus("Success");
+          transactionss.setTransactionType("credit");
+          transactionss.setUser(userRepository.findByUsername(invitationDTO.getInviter()));
+          transactionsService.addTransactionss(transactionss);
+        }
+      });
+      CreateResponse response = new CreateResponse("Success",
+          "User's Invited List updated successfully created successfully");
+      return new ResponseEntity<>(response, HttpStatus.OK);
+    } else {
+      CreateResponse response = new CreateResponse("Error", "User already invited");
+      return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
     }
-    
+
   }
 
   private boolean isOwnAccount(String userName) {
@@ -217,8 +367,21 @@ public class UserController {
   public ResponseEntity<createUserResponse> accept(@RequestBody Users tempUser) {
     var user = userRepository.findByUsername(tempUser.getUsername());
     if (user != null) {
-      createUserResponse response = new createUserResponse("error", "user already exists");
-      return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
+      if (user.getFullName() == null) {
+        user.setRoles(
+            tempUser.getRoles().stream().map(x -> this.roleRepo.findByRoleName(x.getRoleName()))
+                .collect(Collectors.toList()));
+        user.setFullName(tempUser.getFullName());
+        user.setEmail(tempUser.getEmail());
+        user.setPassword(passwordEncoder.encode(tempUser.getPassword()));
+        userRepository.save(user);
+        createUserResponse response = new createUserResponse("success", "user created successfully");
+        return new ResponseEntity<>(response, HttpStatus.OK);
+      } else {
+        createUserResponse response = new createUserResponse("error", "user already exists");
+        return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
+      }
+
     }
 
     tempUser.setRoles(
@@ -226,23 +389,28 @@ public class UserController {
             .collect(Collectors.toList()));
     tempUser.setPassword(passwordEncoder.encode(tempUser.getPassword()));
     List<Challenge> challenges = challengsService.getChallenges();
-    challenges.stream().forEach(c -> {
-      DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
-      Date currentDate = new Date();
-      UserChallenge userChallenge = new UserChallenge();
-      userChallenge.setChallenge(c);
-      userChallenge.setJoinedAt(dateFormat.format(currentDate));
-      userChallenge.setIsEnabled(true);
-      userChallenge.setPoints(0.0);
-      Users newUser = userRepository.save(tempUser);
-      userChallenge.setUsers(newUser);
-      if (c.getProductCataloge().getPlaystoreLink() != null) {
-        userChallenge.setAffliateLink(
-            "https://play.google.com/store/apps/details?id=" + c.getProductCataloge().getPlaystoreLink()
-                + "&referrer=utm_content=" + newUser.getUsername() + "&utm_source=coopLoyalityApp");
+    if (userRepository.findByUsername(tempUser.getUsername()) == null) {
+      challenges.stream().forEach(c -> {
+
+        DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
+        Date currentDate = new Date();
+        UserChallenge userChallenge = new UserChallenge();
+        userChallenge.setChallenge(c);
+        userChallenge.setJoinedAt(dateFormat.format(currentDate));
+        userChallenge.setIsEnabled(true);
+        userChallenge.setPoints(0.0);
+        Users newUser = userRepository.save(tempUser);
+        userChallenge.setUsers(newUser);
+        if (c.getProductCataloge().getPlaystoreLink() != null) {
+          userChallenge.setAffliateLink(
+              "https://play.google.com/store/apps/details?id=" + c.getProductCataloge().getPlaystoreLink()
+                  + "&referrer=utm_content=" + newUser.getUsername() + "&utm_source=coopLoyalityApp");
+        }
+        userChallengsService.addUserChallenge(userChallenge);
       }
-      userChallengsService.addUserChallenge(userChallenge);
-    });
+
+      );
+    }
     createUserResponse response = new createUserResponse("success", "user created successfully");
     return new ResponseEntity<>(response, HttpStatus.OK);
   }
